@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- ========================= -->
-  <!-- Leaflet (지도 기본 CSS) -->
+  <!-- Leaflet CSS -->
   <!-- ========================= -->
   <link
     rel="stylesheet"
@@ -16,7 +16,7 @@
   />
 
   <!-- ========================= -->
-  <!-- MarkerCluster (클러스터 CSS) -->
+  <!-- MarkerCluster CSS -->
   <!-- ========================= -->
   <link
     rel="stylesheet"
@@ -28,7 +28,7 @@
   />
 
   <!-- ========================= -->
-  <!-- 페이지 스타일 -->
+  <!-- 커스텀 스타일 -->
   <!-- ========================= -->
   <style>
     body {
@@ -66,6 +66,15 @@
       border-top: 1px solid #dee2e6;
       line-height: 1.4;
     }
+
+    /* ✅ 벚꽃 개별 마커 스타일 (클러스터 대응) */
+    .cherry-marker {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #ffb3c1;
+      border: 1px solid #c2255c;
+    }
   </style>
 </head>
 
@@ -82,9 +91,8 @@
   <strong>데이터 범위 안내</strong><br>
   본 지도는 산림청 「도시숲 가로수 관리」 공공데이터 중<br>
   <strong>인천광역시 부평구</strong>에서 관리 중인 <strong>‘벚나무’</strong> 가로수를 기반으로 제작되었습니다.<br>
-  행정 관리 특성상 실제 수종(왕벚나무 등)과 차이가 있을 수 있으며,
-  지도는 참고용으로 활용해 주세요.<br>
-  <br>
+  행정 관리 특성상 실제 수종(왕벚나무 등)과 차이가 있을 수 있으며
+  지도는 참고용으로 활용해 주세요.<br><br>
   향후 인천 전역(서구·연수구·남동구 등)으로 확대될 예정입니다.<br>
   ⓒ OpenStreetMap contributors · Visualization by GitHub Pages
 </footer>
@@ -105,44 +113,42 @@
   // =========================
   const map = L.map("map").setView([37.491, 126.724], 12);
 
-  // 베이스맵
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
   // =========================
-  // 클러스터 그룹 설정
+  // 클러스터 그룹
   // =========================
   const clusterGroup = L.markerClusterGroup({
-    disableClusteringAtZoom: 16, // 이 줌 이상이면 개별 점
+    disableClusteringAtZoom: 16,
     maxClusterRadius: 50
   });
 
   // =========================
-  // 부평구 벚꽃 GeoJSON 로드
+  // GeoJSON 로드
   // =========================
   fetch("incheon_cherry_bupyeong.geojson")
     .then(response => response.json())
     .then(data => {
-        const geoLayer = L.geoJSON(data, {
-  pointToLayer: (feature, latlng) => {
-    return L.marker(latlng, {
-      icon: L.divIcon({
-        className: "cherry-marker",
-        iconSize: [6, 6]
-      })
-    });
-  },
-  onEachFeature: (feature, layer) => {
-    layer.bindPopup(`
-      🌸 벚나무 가로수<br>
-      ${feature.properties.시군구명}<br>
-      흉고직경: ${feature.properties.수목흉고직경 || "-"}
-    `);
-  }
-});
-
-
+      const geoLayer = L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+          // ✅ circleMarker ❌ → marker ✅
+          return L.marker(latlng, {
+            icon: L.divIcon({
+              className: "cherry-marker",
+              iconSize: [6, 6]
+            })
+          });
+        },
+        onEachFeature: (feature, layer) => {
+          layer.bindPopup(`
+            🌸 벚나무 가로수<br>
+            ${feature.properties.시군구명}<br>
+            흉고직경: ${feature.properties.수목흉고직경 || "-"}
+          `);
+        }
+      });
 
       clusterGroup.addLayer(geoLayer);
       map.addLayer(clusterGroup);
