@@ -2,78 +2,117 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>인천 벚꽃 지도 (가로수 왕벚나무)</title>
+  <title>인천 부평구 벚꽃 가로수 지도</title>
 
   <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
   />
 
   <style>
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, "Noto Sans KR", sans-serif;
+                   Roboto, "Noto Sans KR", Helvetica, Arial, sans-serif;
     }
+
     header {
       padding: 12px 16px;
-      background: #f7f7f7;
-      border-bottom: 1px solid #ddd;
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
     }
+
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 13px;
+      color: #555;
+      margin: 4px 0 0;
+    }
+
     #map {
-      height: calc(100vh - 56px);
+      height: calc(100vh - 120px);
     }
+
     footer {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      background: white;
-      padding: 6px 10px;
+      padding: 10px 14px;
       font-size: 12px;
-      border-radius: 4px;
-      box-shadow: 0 0 4px rgba(0,0,0,0.2);
+      color: #444;
+      background: #ffffff;
+      border-top: 1px solid #dee2e6;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <strong>🌸 인천 벚꽃 지도</strong>
-  <span style="color:#666; font-size:14px;">
-    (가로수 왕벚나무 · 공공데이터 기반)
-  </span>
+  <h1>🌸 인천 부평구 벚꽃 가로수 지도</h1>
+  <p>공공데이터 기반 · 가로수 벚나무 위치 시각화</p>
 </header>
 
 <div id="map"></div>
 
 <footer>
-  데이터 출처: 산림청 도시숲 가로수 관리 데이터<br>
-  본 지도는 참고용이며 실제 현장과 다를 수 있습니다.
+  <strong>데이터 범위 안내</strong><br>
+  본 지도는 산림청 「도시숲 가로수 관리」 공공데이터 중<br>
+  <strong>인천광역시 부평구</strong>에서 관리 중인 <strong>‘벚나무’</strong> 가로수를 기반으로 제작되었습니다.<br>
+  행정 관리 특성상 실제 수종(왕벚나무 등)과 차이가 있을 수 있으며,
+  지도는 참고용으로 활용해 주세요.<br>
+  <br>
+  ⓒ OpenStreetMap contributors · Visualization by GitHub Pages
 </footer>
 
 <!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
 
 <script>
-  // 지도 생성 (인천 중심)
-  const map = L.map('map').setView([37.4563, 126.7052], 11);
+  // 지도 초기화 (부평구 중심)
+  const map = L.map('map').setView([37.491, 126.724], 12);
 
-  // OpenStreetMap 타일
+  // 베이스맵
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // 임시 테스트용 벚꽃 마커 (나중에 GeoJSON으로 변경)
-  L.circleMarker([37.4563, 126.7052], {
-    radius: 6,
-    color: '#d6336c',
-    fillColor: '#ff8fb1',
-    fillOpacity: 0.8
-  })
-  .addTo(map)
-  .bindPopup("테스트 벚나무<br>인천 시청 근처");
+  // ✅ 부평구 벚꽃 GeoJSON 불러오기
+  fetch('incheon_cherry_bupyeong.geojson')
+    .then(response => response.json())
+    .then(data => {
+      L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+          return L.circleMarker(latlng, {
+            radius: 3,
+            color: '#c2255c',
+            fillColor: '#ffb3c1',
+            fillOpacity: 0.8,
+            weight: 1
+          });
+        },
+        onEachFeature: (feature, layer) => {
+          layer.bindPopup(`
+            🌸 벚나무 가로수<br>
+            ${feature.properties.시군구명}<br>
+            흉고직경: ${feature.properties.수목흉고직경 || '-'}
+          `);
+        }
+      }).addTo(map);
+    })
+    .catch(err => {
+      console.error("GeoJSON 로드 실패:", err);
+    });
 </script>
 
 </body>
 </html>
+
