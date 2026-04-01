@@ -124,24 +124,25 @@
   fetch("incheon_cherry_bupyeong.geojson")
     .then(response => response.json())
     .then(data => {
-      const geoLayer = L.geoJSON(data, {
-        pointToLayer: (feature, latlng) => {
-          return L.circleMarker(latlng, {
-            radius: 3,
-            color: "#c2255c",
-            fillColor: "#ffb3c1",
-            fillOpacity: 0.8,
-            weight: 1
-          });
-        },
-        onEachFeature: (feature, layer) => {
-          layer.bindPopup(`
-            🌸 벚나무 가로수<br>
-            ${feature.properties.시군구명}<br>
-            흉고직경: ${feature.properties.수목흉고직경 || "-"}
-          `);
-        }
-      });
+        const geoLayer = L.geoJSON(data, {
+  pointToLayer: (feature, latlng) => {
+    return L.marker(latlng, {
+      icon: L.divIcon({
+        className: "cherry-marker",
+        iconSize: [6, 6]
+      })
+    });
+  },
+  onEachFeature: (feature, layer) => {
+    layer.bindPopup(`
+      🌸 벚나무 가로수<br>
+      ${feature.properties.시군구명}<br>
+      흉고직경: ${feature.properties.수목흉고직경 || "-"}
+    `);
+  }
+});
+
+
 
       clusterGroup.addLayer(geoLayer);
       map.addLayer(clusterGroup);
